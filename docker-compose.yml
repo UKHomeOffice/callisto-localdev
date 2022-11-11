@@ -11,21 +11,21 @@ x-liquibase-settings: &liquibase-setting
   networks:
     - callisto
   depends_on:
-    - postgres
+    postgres:
+      condition: service_healthy
 
 x-db-settings: &db-settings
-    pull_policy: always
-    environment:
-      - DATABASE_NAME=${DATABASE_NAME}
-      - DATABASE_USERNAME=${PSQL_USER}
-      - DATABASE_PASSWORD=${PSQL_PASSWORD}
-      - DATABASE_ENDPOINT=postgres
-      - DATABASE_PORT=5432
-    networks:
-      - callisto
+  pull_policy: always
+  environment:
+    - DATABASE_NAME=${DATABASE_NAME}
+    - DATABASE_USERNAME=${PSQL_USER}
+    - DATABASE_PASSWORD=${PSQL_PASSWORD}
+    - DATABASE_ENDPOINT=postgres
+    - DATABASE_PORT=5432
+  networks:
+    - callisto
 
 services:
-
   postgres:
     image: postgres:13.1
     ports:
@@ -36,6 +36,11 @@ services:
       - POSTGRES_DB=${DATABASE_NAME}
     networks:
       - callisto
+    healthcheck:
+      test: ["CMD", "psql", "-U", "${PSQL_USER}", "-d", "${DATABASE_NAME}"]
+      interval: 500ms
+      timeout: 1s
+      retries: 5
 
   timecard-database-migrations:
     <<: *liquibase-setting
@@ -47,7 +52,7 @@ services:
     ports:
       - "50000:9090"
     depends_on:
-      - timecard-database-migrations 
+      - timecard-database-migrations
 
 networks:
   callisto:
