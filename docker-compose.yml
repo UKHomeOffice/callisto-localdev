@@ -1,0 +1,54 @@
+version: "3.9"
+
+x-liquibase-settings: &liquibase-setting
+  pull_policy: always
+  command:
+    - "--url=jdbc:postgresql://postgres:5432/${DATABASE_NAME}"
+    - "--username=${PSQL_USER}"
+    - "--password=${PSQL_PASSWORD}"
+    - "--changeLogFile=changelog/db.changelog-main.yml"
+    - "update"
+  networks:
+    - callisto
+  depends_on:
+    - postgres
+
+x-db-settings: &db-settings
+    pull_policy: always
+    environment:
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USERNAME=${PSQL_USER}
+      - DATABASE_PASSWORD=${PSQL_PASSWORD}
+      - DATABASE_ENDPOINT=postgres
+      - DATABASE_PORT=5432
+    networks:
+      - callisto
+
+services:
+
+  postgres:
+    image: postgres:13.1
+    ports:
+      - "5432"
+    environment:
+      - POSTGRES_PASSWORD=${PSQL_PASSWORD}
+      - POSTGRES_USER=${PSQL_USER}
+      - POSTGRES_DB=${DATABASE_NAME}
+    networks:
+      - callisto
+
+  timecard-database-migrations:
+    <<: *liquibase-setting
+    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-database:$TIMECARD_RESTAPI_TAG"
+
+  timecard-restapi:
+    <<: *db-settings
+    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-restapi:$TIMECARD_RESTAPI_TAG"
+    ports:
+      - "50000:9090"
+    depends_on:
+      - timecard-database-migrations 
+
+networks:
+  callisto:
+    driver: bridge
