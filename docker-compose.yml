@@ -54,6 +54,19 @@ services:
     depends_on:
       - timecard-database-migrations
 
+  accruals-restapi:
+    <<: *db-settings
+    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/accruals-restapi:$TIMECARD_RESTAPI_TAG"
+    ports:
+      - "50100:9090"
+    depends_on:
+      - timecard-database-migrations
+
+  # keycloak:
+  #   image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/auth-keycloak:EAHW-2300"
+  #   ports:
+  #     - "8080:8080"
+
 networks:
   callisto:
     driver: bridge
