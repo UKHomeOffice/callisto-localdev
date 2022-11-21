@@ -42,18 +42,6 @@ services:
       timeout: 1s
       retries: 5
 
-  timecard-database-migrations:
-    <<: *liquibase-setting
-    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-database:$TIMECARD_RESTAPI_TAG"
-
-  timecard-restapi:
-    <<: *db-settings
-    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-restapi:$TIMECARD_RESTAPI_TAG"
-    ports:
-      - "50000:9090"
-    depends_on:
-      - timecard-database-migrations
-
   ingress:
     image: nginx:1.19.2-alpine
     ports:
@@ -65,6 +53,30 @@ services:
       - ./ingress/hostname.key:/etc/ssl/private/hostname.key:ro
     networks:
       - callisto
+
+  keycloak:
+    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/auth-keycloak:$KEYCLOAK_TAG"
+    environment:
+      - DB_VENDOR=h2
+      - PROXY_ADDRESS_FORWARDING=true
+    command:
+      - "-Djboss.http.port=9090"
+    ports:
+      - "50000:9090"
+    networks:
+      - callisto
+
+  timecard-database-migrations:
+    <<: *liquibase-setting
+    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-database:$TIMECARD_RESTAPI_TAG"
+
+  timecard-restapi:
+    <<: *db-settings
+    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-restapi:$TIMECARD_RESTAPI_TAG"
+    ports:
+      - "50100:9090"
+    depends_on:
+      - timecard-database-migrations
 
 networks:
   callisto:
