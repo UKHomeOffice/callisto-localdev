@@ -54,18 +54,17 @@ services:
     depends_on:
       - timecard-database-migrations
 
-  accruals-restapi:
-    <<: *db-settings
-    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/accruals-restapi:$TIMECARD_RESTAPI_TAG"
+  ingress:
+    image: nginx:1.19.2-alpine
     ports:
-      - "50100:9090"
-    depends_on:
-      - timecard-database-migrations
-
-  # keycloak:
-  #   image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/auth-keycloak:EAHW-2300"
-  #   ports:
-  #     - "8080:8080"
+      - 80:80
+      - 443:443
+    volumes:
+      - ./ingress/default.conf:/etc/nginx/conf.d/default.conf
+      - ./ingress/hostname-cert.crt:/etc/ssl/certs/hostname-cert.crt:ro
+      - ./ingress/hostname.key:/etc/ssl/private/hostname.key:ro
+    networks:
+      - callisto
 
 networks:
   callisto:
