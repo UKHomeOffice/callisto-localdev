@@ -78,6 +78,14 @@ services:
     depends_on:
       - timecard-database-migrations
 
+  accruals-restapi:
+    <<: *db-settings
+    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/accruals-restapi:$ACCRUALS_RESTAPI_TAG"
+    command:
+      - "--server.port=9090" # Having to override server port as application.properties is setting it to a different port
+    ports:
+      - "50200:9090"
+
 networks:
   callisto:
     driver: bridge
