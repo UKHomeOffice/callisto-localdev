@@ -70,6 +70,14 @@ services:
     networks:
       - callisto
 
+  web:
+    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/ui:$WEB_TAG"
+    pull_policy: always
+    ports:
+      - "50001:9090"
+    networks:
+      - callisto
+
   timecard-database-migrations:
     <<: *liquibase-setting
     image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-database:$TIMECARD_RESTAPI_TAG"
