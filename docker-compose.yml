@@ -60,6 +60,9 @@ services:
     environment:
       - DB_VENDOR=h2
       - PROXY_ADDRESS_FORWARDING=true
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:9090/auth']
+      start_period: 30s
     command:
       - "-Djboss.http.port=9090"
     ports:
