@@ -10,14 +10,11 @@ reduce the burden on anyone trying to run the solution locally but it does mean 
 being asked to trust a certificate from a public repository 
 (see [Trusting the certificate](#trusting-the-certificate))
 
-If you would like to create your own certificate you can execute the commands below to generate
-you're own unique certificate that you can then trust.
+If you would like to create your own certificate you can execute the command below to generate
+your own unique certificate that you can then trust.
 
 ```
-openssl genrsa -out ./ingress/hostname.key 4096
-openssl rsa -in ./ingress/hostname.key -out ./ingress/hostname-key.pem
-openssl req -new -key ./ingress/hostname-key.pem -out ./ingress/hostname-request.csr -subj "/C=GB/O=UK Home Office/CN=*.callisto.localhost"  -sha256
-openssl x509 -req -extensions v3_req -days 14600 -in ./ingress/hostname-request.csr -signkey ./ingress/hostname-key.pem -out ./ingress/hostname-cert.crt -extfile ./ingress/openssl.cnf -sha256
+openssl req -x509 -nodes -days 14600 -newkey rsa:2048 -keyout ./ingress/nginx-selfsigned.key -out ./ingress/nginx-selfsigned.crt -config ./ingress/openssl.cnf -sha256 -extensions v3_req -subj "/C=GB/O=UK Home Office/CN=*.callisto.localhost"
 ```
 
 ## Trusting the certificate
@@ -40,7 +37,7 @@ done through Preferences > Core Shields > Web Shield > Add exceptions.
 ![Add exception in AVG Antivirus](./avg_exception.png)
 
 ### MacOS + Chrome
-* Locate the certificate [hostname-cert.crt](./ingress/hostname-cert.crt) and open it
+* Locate the certificate [nginx-selfsigned.crt](./ingress/nginx-selfsigned.crt) and open it
 * This will import the certificate into your Keychain.
 * Open Keychain and locate the certificate.
 * Expand the trust section and change `When using this certificate` to `Always Trust`
