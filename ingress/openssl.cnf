@@ -28,11 +28,15 @@ challengePassword_max		= 20
  
 # Extensions to add to a certificate request
  
-basicConstraints = CA:TRUE # TRUE if you want to use it on Android as well, else FALSE
+basicConstraints = CA:FALSE
 keyUsage = nonRepudiation, digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth, clientAuth
 subjectAltName = @alt_names
+authorityKeyIdentifier= keyid,issuer
+
+[ v3_ca ]
+subjectAltName = @alt_names
 
 [alt_names]
-DNS.1 = web.callisto.localhost
+DNS.1 = callisto.localhost
 DNS.2 = *.callisto.localhost
