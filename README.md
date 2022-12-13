@@ -8,11 +8,27 @@
 
 > Run `docker compose up -d` command from the main directory level
 
-## Port allocation
+## Accessing UI & other URLs
 
-- starting in 50000 range
-- C4 containers will jump by 100s
-- core service will be undefined/ephemeral/dynamically selected by docker e.g. postgres & kafka
+> UI: https://web.callisto.localhost
+
+> Keycloak: https://keycloak.callisto.localhost
+
+> Timecard REST API Swagger: https://timecard-restapi.callisto.localhost/swagger-ui/index.html
+
+> Other services: https://docker-compose-service-name.callisto.localhost
+
+## Help
+
+### **'Your connection is not private' message ?**
+
+Click **Advanced** and then **Proceed to \<service URL> (unsafe)**.
+
+### **UI url works, but the page is blank ?**
+
+Do the same as above for each required service url.
+
+- [13 Dec 2022] Keycloak, Timecard REST API
 
 ## Creating a self signed cert for ingress
 
@@ -56,3 +72,9 @@ done through Preferences > Core Shields > Web Shield > Add exceptions.
 - Expand the trust section and change `When using this certificate` to `Always Trust`
 - Close the window to save the changes
 - Refresh your browser window
+
+## Port allocation for services
+
+- starting in 50000 range
+- C4 containers will jump by 100s
+- core service will be undefined/ephemeral/dynamically selected by docker e.g. postgres & kafka
