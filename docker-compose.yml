@@ -45,8 +45,8 @@ services:
       - 443:443
     volumes:
       - ./ingress/default.conf:/etc/nginx/conf.d/default.conf
-      - ./ingress/nginx-selfsigned.crt:/etc/ssl/certs/hostname-cert.crt:ro
-      - ./ingress/nginx-selfsigned.key:/etc/ssl/private/hostname.key:ro
+      - ./ingress/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt:ro
+      - ./ingress/nginx-selfsigned.key:/etc/ssl/private/nginx-selfsigned.key:ro
     networks:
       - callisto
 
