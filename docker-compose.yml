@@ -1,23 +1,30 @@
 version: "3.9"
 
+x-db-env-conf: &db-env
+  DATABASE_NAME: ${DATABASE_NAME}
+  DATABASE_USERNAME: ${PSQL_USER}
+  DATABASE_PASSWORD: ${PSQL_PASSWORD}
+  DATABASE_ENDPOINT: postgres
+  DATABASE_PORT: 5432
+
+# not sure if we need to keep that one as it's doing just verry little for us :/ :/
+x-db-settings: &db-settings
+  environment:
+    <<: *db-env
+  networks:
+    - callisto
+
 x-liquibase-settings: &liquibase-setting
   pull_policy: ${PULL_POLICY}
+  volumes:
+    - ./liquibase/liquibase-setup.sh:/liquibase-setup.sh
+  command: chmod +x /liquibase-setup.sh
+  entrypoint: /liquibase-setup.sh
   networks:
     - callisto
   depends_on:
     postgres:
       condition: service_healthy
-
-x-db-settings: &db-settings
-  pull_policy: ${PULL_POLICY}
-  environment:
-    - DATABASE_NAME=${DATABASE_NAME}
-    - DATABASE_USERNAME=${PSQL_USER}
-    - DATABASE_PASSWORD=${PSQL_PASSWORD}
-    - DATABASE_ENDPOINT=postgres
-    - DATABASE_PORT=5432
-  networks:
-    - callisto
 
 services:
   postgres:
@@ -77,13 +84,9 @@ services:
   timecard-database-migrations:
     <<: *liquibase-setting
     image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-database:$TIMECARD_RESTAPI_TAG"
-    command:
-      - "--url=jdbc:postgresql://postgres:5432/${DATABASE_NAME}"
-      - "--username=${PSQL_USER}"
-      - "--password=${PSQL_PASSWORD}"
-      - "--changeLogFile=changelog/db.changelog-main.yml"
-      - "--liquibaseSchemaName=timecard"
-      - "update"
+    environment:
+      databaseSchemaName: timecard
+      <<: *db-env
 
   timecard-restapi:
     <<: *db-settings
