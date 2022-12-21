@@ -35,6 +35,8 @@ services:
       - POSTGRES_PASSWORD=${PSQL_PASSWORD}
       - POSTGRES_USER=${PSQL_USER}
       - POSTGRES_DB=${DATABASE_NAME}
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d # This volume store sql files that are executed automaticallyby Postgres.
     networks:
       - callisto
     healthcheck:
@@ -42,8 +44,6 @@ services:
       interval: 500ms
       timeout: 1s
       retries: 5
-    volumes:
-      - ./sql:/docker-entrypoint-initdb.d # This volume store sql files that are executed automaticallyby Postgres.
 
   ingress:
     image: nginx:1.19.2-alpine
