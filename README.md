@@ -18,18 +18,6 @@
 
 > Other services: https://docker-compose-service-name.callisto.localhost
 
-## Help
-
-### **'Your connection is not private' message ?**
-
-Click **Advanced** and then **Proceed to \<service URL> (unsafe)**.
-
-### **UI url works, but the page is blank ?**
-
-Do the same as above for each required service url.
-
-- [13 Dec 2022] Keycloak, Timecard REST API
-
 ## Creating a self signed cert for ingress
 
 The ingress folder contains a key and certificate for SSL termination in an nginx reverse proxy.
@@ -78,3 +66,15 @@ done through Preferences > Core Shields > Web Shield > Add exceptions.
 - starting in 50000 range
 - C4 containers will jump by 100s
 - core service will be undefined/ephemeral/dynamically selected by docker e.g. postgres & kafka
+
+## Help
+
+### **'Your connection is not private' message ?**
+
+Click **Advanced** and then **Proceed to \<service URL> (unsafe)**.
+
+### **UI url works, but the page is blank ?**
+
+Do the same as above for each required service url.
+
+- [13 Dec 2022] Keycloak, Timecard REST API
