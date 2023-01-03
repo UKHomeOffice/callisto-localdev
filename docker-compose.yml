@@ -13,13 +13,6 @@ x-db-env-conf: &db-env
   DATABASE_ENDPOINT: postgres
   DATABASE_PORT: 5432
 
-# not sure if we need to keep that one as it's doing just verry little for us :/ :/
-x-db-settings: &db-settings
-  environment:
-    <<: *db-env
-  networks:
-    - callisto
-
 x-liquibase-settings: &liquibase-setting
   pull_policy: ${PULL_POLICY}
   volumes:
@@ -190,8 +183,9 @@ services:
       <<: *db-env
 
   timecard-restapi:
-    <<: *db-settings
     image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-restapi:$TIMECARD_RESTAPI_TAG"
+    environment:
+      <<: *db-env
     ports:
       - "50100:9090"
     depends_on:
@@ -200,10 +194,13 @@ services:
     healthcheck:
       <<: *healthcheck-settings
       test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui/index.html || exit 1
+    networks:
+      - callisto
 
   accruals-restapi:
-    <<: *db-settings
     image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/accruals-restapi:$ACCRUALS_RESTAPI_TAG"
+    environment:
+      <<: *db-env
     command:
       - "--server.port=9090" # Having to override server port as application.properties is setting it to a different port
     ports:
@@ -211,6 +208,8 @@ services:
     healthcheck:
       <<: *healthcheck-settings
       test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui/index.html || exit 1
+    networks:
+      - callisto
 
 networks:
   callisto:
