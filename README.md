@@ -53,7 +53,14 @@ The same procedure should be followed if you want to work on the code of another
 
 ## .env
 
-To use Docker images with specific TAGs or change config slightly, do it here.
+This holds any environment variables required to run the solution so that no custom configuration is required. 
+If a variable needs to be modified, for example to run a specific TAG, prefix the docker command with the variable
+
+e.g. This would run the solution using the UI docker image that had been tagged with `EAHW-2300`
+
+```
+WEB_TAG=EAHW-2300 docker compose up -d
+```
 
 ## Accessing UI & other URLs
 
@@ -66,17 +73,7 @@ https://\<docker-compose-service-name\>.callisto.localhost
 
 > Timecard REST API Swagger: https://timecard-restapi.callisto.localhost/swagger-ui/index.html
 
-## Help
-
-### **'Your connection is not private' message ?**
-
-Click **Advanced** and then **Proceed to \<service URL> (unsafe)**.
-
-### **UI url works, but the page is blank ?**
-
-Do the same as above for each required service url.
-
-- [13 Dec 2022] Keycloak, Timecard REST API
+> Other services: https://docker-compose-service-name.callisto.localhost
 
 ## Creating a self signed cert for ingress
 
