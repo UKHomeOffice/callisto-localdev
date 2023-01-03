@@ -2,7 +2,7 @@
 
 ## Introduction and motivation
 
-The purpose of this repository is to allow the Callisto application to run on the local machine and minimize user input to do so.
+The purpose of this repository is to enable the Callisto application to run for development or demo/test purposes on a local machine and to minimize the user's input to do so.
 
 The motivation to create this solution was the growing number of dependencies included in Callisto, their configuration and possible avoidance of manual downloading and running dependencies from repositories when it is not necessary.
 
