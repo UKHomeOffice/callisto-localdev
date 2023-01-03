@@ -1,6 +1,6 @@
 # Callisto LocalDev
 
-## Intruduction and motivation
+## Introduction and motivation
 
 The purpose of this repository is to allow the Callisto application to run on the local machine and minimize user input to do so.
 
