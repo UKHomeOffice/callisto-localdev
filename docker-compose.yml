@@ -1,5 +1,11 @@
 version: "3.9"
 
+x-healthcheck-settings: &healthcheck-settings 
+  interval: 10s
+  retries: 10
+  start_period: 15s
+  timeout: 2s
+
 x-db-env-conf: &db-env
   DATABASE_NAME: ${DATABASE_NAME}
   DATABASE_USERNAME: ${PSQL_USER}
@@ -26,6 +32,15 @@ x-liquibase-settings: &liquibase-setting
     postgres:
       condition: service_healthy
 
+x-certificate-creation: &certificate-creation
+  pull_policy: ${PULL_POLICY}
+  image: eclipse-temurin:17-jre-focal
+  volumes:
+    - ./kafka:/kafka
+    - keystore:/keystore
+  working_dir: /kafka
+  entrypoint: ["/kafka/create_keystore.sh"]
+
 services:
   postgres:
     image: postgres:13.1
@@ -45,6 +60,85 @@ services:
       timeout: 1s
       retries: 5
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    ports:
+      - "2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    healthcheck:
+      <<: *healthcheck-settings
+      test: 'nc -z zookeeper 2181 || exit -1'
+
+  kafka-setup:
+    <<: *certificate-creation
+    command: ["kafka"]
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    ports:
+      - "9093"
+    volumes:
+      - keystore:/keystore
+      - keystore:/etc/kafka/secrets/keystore
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_ADVERTISED_LISTENERS: SSL://kafka:9093
+      KAFKA_SSL_KEY_CREDENTIALS: /keystore/kafka/kafka_creds
+      KAFKA_SSL_KEYSTORE_FILENAME: /keystore/kafka/kafka.keystore.jks
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: /keystore/kafka/kafka_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: /keystore/kafka/kafka.truststore.jks
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: /keystore/kafka/kafka_creds
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: " "
+      KAFKA_SSL_CLIENT_AUTH: requested
+      KAFKA_SECURITY_INTER_BROKER_PROTOCOL: SSL
+      KAFKA_AUTHORIZER_CLASS_NAME: kafka.security.authorizer.AclAuthorizer
+      KAFKA_SUPER_USERS: 'User:C=GB,O=UK Home Office,CN=Callisto kafka'
+    healthcheck:
+      <<: *healthcheck-settings
+      test: 'nc -z kafka 9093 || exit -1'
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+      kafka-setup:
+        condition: service_completed_successfully
+
+  kafka-producer-setup:
+    <<: *certificate-creation
+    command: ["kafka-producer"]
+
+  kafka-producer:
+    pull_policy: ${PULL_POLICY}
+    image: confluentinc/cp-kafka:7.3.0
+    volumes:
+      - ./kafka:/kafka
+      - keystore:/etc/kafka/secrets/keystore
+    entrypoint: ["sleep", "1h"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-producer-setup:
+        condition: service_completed_successfully
+
+  kafka-consumer-setup:
+    <<: *certificate-creation
+    command: ["kafka-consumer"]
+
+  kafka-consumer:
+    pull_policy: ${PULL_POLICY}
+    image: confluentinc/cp-kafka:7.3.0
+    volumes:
+      - ./kafka:/kafka
+      - keystore:/etc/kafka/secrets/keystore
+    entrypoint: ["sleep", "1h"]
+    depends_on:
+      kafka:
+        condition: service_healthy
+      kafka-consumer-setup:
+        condition: service_completed_successfully
+
   ingress:
     image: nginx:1.19.2-alpine
     ports:
@@ -52,10 +146,13 @@ services:
       - 443:443
     volumes:
       - ./ingress/default.conf:/etc/nginx/conf.d/default.conf
-      - ./ingress/nginx-selfsigned.crt:/etc/ssl/certs/hostname-cert.crt:ro
-      - ./ingress/nginx-selfsigned.key:/etc/ssl/private/hostname.key:ro
+      - ./ingress/nginx-selfsigned.crt:/etc/ssl/certs/nginx-selfsigned.crt:ro
+      - ./ingress/nginx-selfsigned.key:/etc/ssl/private/nginx-selfsigned.key:ro
     networks:
       - callisto
+    healthcheck:
+      <<: *healthcheck-settings
+      test: 'nc -z ingress 443 || exit -1'
 
   keycloak:
     image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/auth-keycloak:$KEYCLOAK_TAG"
@@ -64,8 +161,8 @@ services:
       - DB_VENDOR=h2
       - PROXY_ADDRESS_FORWARDING=true
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9090/auth"]
-      start_period: 30s
+      <<: *healthcheck-settings
+      test: ['CMD', 'curl', '-f', 'http://keycloak:9090/auth']
     command:
       - "-Djboss.http.port=9090"
     ports:
@@ -80,6 +177,10 @@ services:
       - "50001:9090"
     networks:
       - callisto
+    healthcheck:
+      <<: *healthcheck-settings
+      test: ['CMD', 'curl', '-f', 'http://web:9090/index.html']
+
 
   timecard-database-migrations:
     <<: *liquibase-setting
@@ -94,7 +195,11 @@ services:
     ports:
       - "50100:9090"
     depends_on:
-      - timecard-database-migrations
+      timecard-database-migrations:
+        condition: service_completed_successfully
+    healthcheck:
+      <<: *healthcheck-settings
+      test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui/index.html || exit 1
 
   accruals-restapi:
     <<: *db-settings
@@ -103,7 +208,14 @@ services:
       - "--server.port=9090" # Having to override server port as application.properties is setting it to a different port
     ports:
       - "50200:9090"
+    healthcheck:
+      <<: *healthcheck-settings
+      test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui/index.html || exit 1
 
 networks:
   callisto:
     driver: bridge
+
+volumes:
+  keystore:
+    driver: local
