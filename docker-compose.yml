@@ -13,13 +13,6 @@ x-db-env-conf: &db-env
   DATABASE_ENDPOINT: postgres
   DATABASE_PORT: 5432
 
-# not sure if we need to keep that one as it's doing just verry little for us :/ :/
-x-db-settings: &db-settings
-  environment:
-    <<: *db-env
-  networks:
-    - callisto
-
 x-liquibase-settings: &liquibase-setting
   pull_policy: ${PULL_POLICY}
   volumes:
