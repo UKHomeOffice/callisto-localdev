@@ -170,6 +170,9 @@ services:
       - "50001:9090"
     networks:
       - callisto
+    depends_on:
+      keycloak:
+        condition: service_healthy
     healthcheck:
       <<: *healthcheck-settings
       test: ['CMD', 'curl', '-f', 'http://web:9090/index.html']
