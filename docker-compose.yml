@@ -64,7 +64,11 @@ services:
       - '9094'
     volumes:
       - keystore:/keystore
-      - ./kafka/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks
+      # Required to trick start script to allow the configuration. Keystore needs to be present in init
+      # script but the real keystore isn't created until kafka-setup. This places and empty file
+      # in the expected location and the environment variable KAFKA_CFG_SSL_KEYSTORE_LOCATION
+      # points to the real keystore when the kafka server is started
+      - ./kafka/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks 
       - ./kafka/healthcheck.properties:/bitnami/kafka/config/healthcheck.properties
     environment:
       KAFKA_ENABLE_KRAFT: yes
