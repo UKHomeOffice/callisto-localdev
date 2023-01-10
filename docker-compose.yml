@@ -61,7 +61,6 @@ services:
     image: bitnami/kafka:3.3
     ports:
       - '9093'
-      - '9094'
     volumes:
       - keystore:/keystore
       # Required to trick start script to allow the configuration. Keystore needs to be present in init
@@ -74,13 +73,16 @@ services:
       KAFKA_ENABLE_KRAFT: yes
       KAFKA_CFG_PROCESS_ROLES: broker,controller
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_LISTENERS: PLAINTEXT://:9093,CONTROLLER://:9092,SSL://:9094
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,SSL:SSL
-      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9093,SSL://kafka:9094
+      KAFKA_CFG_LISTENERS: CONTROLLER://:9092,SSL://:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,SSL:SSL
+      KAFKA_CFG_ADVERTISED_LISTENERS: SSL://kafka:9093
       KAFKA_BROKER_ID: 1
       KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@127.0.0.1:9092
       ALLOW_PLAINTEXT_LISTENER: yes
 
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /keystore/kafka/kafka.truststore.jks
+      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: changeit
       KAFKA_TLS_TRUSTSTORE_FILE: /keystore/kafka/kafka.truststore.jks
       KAFKA_CERTIFICATE_PASSWORD: changeit
       KAFKA_CFG_SSL_KEYSTORE_LOCATION: /keystore/kafka/kafka.keystore.jks
@@ -89,7 +91,7 @@ services:
       KAFKA_CFG_SUPER_USERS: 'User:C=GB,O=UK Home Office,CN=Callisto kafka'
     healthcheck:
       <<: *healthcheck-settings
-      test: kafka-topics.sh --bootstrap-server kafka:9094 --list --command-config /bitnami/kafka/config/healthcheck.properties || exit 1
+      test: kafka-topics.sh --bootstrap-server kafka:9093 --list --command-config /bitnami/kafka/config/healthcheck.properties || exit 1
     depends_on:
       kafka-setup:
         condition: service_completed_successfully
