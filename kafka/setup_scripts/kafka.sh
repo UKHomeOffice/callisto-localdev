@@ -161,6 +161,9 @@ function create_topics(){
     local topics
     local topic
 
+    # This could be improved by reading a list of all topics
+    # once and skipping any in the list as
+    # calling the kafka broker is slow
     IFS=$'\n' topics=( $(cat $root_path/topics.txt) )
     unset IFS
     for topic in "${topics[@]}"
