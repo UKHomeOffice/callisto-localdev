@@ -1,3 +1,1 @@
-timecard
-timecard-other
-no-access
+timecard-timeentries
