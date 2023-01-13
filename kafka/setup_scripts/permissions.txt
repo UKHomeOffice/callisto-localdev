@@ -1,9 +1,11 @@
+# Timecard permissions
 --topic timecard --resource-pattern-type prefixed 
 User:kafka-producer     Write       Allow
 User:kafka-producer     Describe    Allow
 User:example            Write       Allow
 User:example            Describe    Allow
 
+# Accrual permissions
 --topic accruals --resource-pattern-type prefixed 
 User:kafka-producer     Write       Allow
 User:kafka-producer     Describe    Allow

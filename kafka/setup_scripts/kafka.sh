@@ -109,8 +109,8 @@ function apply_permissions() {
     local permissions principal operation permission
 
     # read through the contents of the permissions file and
-    # create the permissions
-    IFS=$'\n' acl_config=( $(cat $root_path/permissions.txt) )
+    # create the permissions. Ignore empty lines and comments
+    IFS=$'\n' acl_config=( $(grep --color=never "^[^#].*" $root_path/permissions.txt) )
     unset IFS
     for line in "${acl_config[@]}"
     do
