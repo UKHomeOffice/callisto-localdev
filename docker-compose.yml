@@ -1,6 +1,6 @@
 version: "3.9"
 
-x-healthcheck-settings: &healthcheck-settings 
+x-healthcheck-settings: &healthcheck-settings
   interval: 10s
   retries: 10
   start_period: 15s
@@ -60,14 +60,14 @@ services:
   kafka:
     image: bitnami/kafka:3.3
     ports:
-      - '9093'
+      - "9093"
     volumes:
       - keystore:/keystore
-      # Required to trick the setup scripts to allow the configuration. The Keystore needs to be present 
+      # Required to trick the setup scripts to allow the configuration. The Keystore needs to be present
       # during setup but the real keystore isn't created until kafka-setup. This places an empty file
       # in the expected location and the environment variable KAFKA_CFG_SSL_KEYSTORE_LOCATION
       # points to the real keystore when the kafka server is started.
-      - ./kafka/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks 
+      - ./kafka/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks
       - ./kafka/kafka.properties:/bitnami/kafka/config/kafka.properties
     environment:
       KAFKA_ENABLE_KRAFT: yes
@@ -91,7 +91,7 @@ services:
       KAFKA_CFG_ALLOW_EVERYONE_IF_NO_ACL_FOUND: false
       KAFKA_CFG_SSL_CLIENT_AUTH: required
       KAFKA_CFG_SSL_PRINCIPAL_MAPPING_RULES: RULE:^C=GB,O=UK Home Office,CN=Callisto (.+)$$/$$1/,DEFAULT
-      KAFKA_CFG_SUPER_USERS: 'User:kafka'
+      KAFKA_CFG_SUPER_USERS: "User:kafka"
     healthcheck:
       <<: *healthcheck-settings
       test: kafka-topics.sh --bootstrap-server kafka:9093 --list --command-config /bitnami/kafka/config/kafka.properties || exit 1
@@ -106,7 +106,11 @@ services:
       - keystore:/keystore
       - ./kafka/kafka.properties:/bitnami/kafka/config/kafka.properties
       - ./kafka/setup_scripts:/setup_scripts
-    entrypoint: ["/setup_scripts/setup-topics-acls.sh", "/bitnami/kafka/config/kafka.properties"]
+    entrypoint:
+      [
+        "/setup_scripts/setup-topics-acls.sh",
+        "/bitnami/kafka/config/kafka.properties",
+      ]
     depends_on:
       kafka:
         condition: service_healthy
@@ -150,17 +154,17 @@ services:
       - callisto
     healthcheck:
       <<: *healthcheck-settings
-      test: 'nc -z ingress 443 || exit -1'
+      test: "nc -z ingress 443 || exit -1"
 
   keycloak:
-    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/auth-keycloak:$KEYCLOAK_TAG"
+    image: "quay.io/ukhomeofficedigital/callisto-auth-keycloak:$KEYCLOAK_TAG"
     pull_policy: ${PULL_POLICY}
     environment:
       - DB_VENDOR=h2
       - PROXY_ADDRESS_FORWARDING=true
     healthcheck:
       <<: *healthcheck-settings
-      test: ['CMD', 'curl', '-f', 'http://keycloak:9090/auth']
+      test: ["CMD", "curl", "-f", "http://keycloak:9090/auth"]
     command:
       - "-Djboss.http.port=9090"
     ports:
@@ -169,7 +173,7 @@ services:
       - callisto
 
   web:
-    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/ui:$WEB_TAG"
+    image: "quay.io/ukhomeofficedigital/callisto-ui:$WEB_TAG"
     pull_policy: ${PULL_POLICY}
     ports:
       - "50001:9090"
@@ -180,18 +184,17 @@ services:
         condition: service_healthy
     healthcheck:
       <<: *healthcheck-settings
-      test: ['CMD', 'curl', '-f', 'http://web:9090/index.html']
-
+      test: ["CMD", "curl", "-f", "http://web:9090/index.html"]
 
   timecard-database-migrations:
     <<: *liquibase-setting
-    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-database:$TIMECARD_RESTAPI_TAG"
+    image: "quay.io/ukhomeofficedigital/callisto-timecard-database:$TIMECARD_RESTAPI_TAG"
     environment:
       databaseSchemaName: timecard
       <<: *db-env
 
   timecard-restapi:
-    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/timecard-restapi:$TIMECARD_RESTAPI_TAG"
+    image: "quay.io/ukhomeofficedigital/callisto-timecard-restapi:$TIMECARD_RESTAPI_TAG"
     environment:
       <<: *db-env
     ports:
@@ -206,7 +209,7 @@ services:
       - callisto
 
   accruals-restapi:
-    image: "340268328991.dkr.ecr.eu-west-2.amazonaws.com/callisto/accruals-restapi:$ACCRUALS_RESTAPI_TAG"
+    image: "quay.io/ukhomeofficedigital/callisto-accruals-restapi:$ACCRUALS_RESTAPI_TAG"
     environment:
       <<: *db-env
     command:
