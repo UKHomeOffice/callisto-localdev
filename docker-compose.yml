@@ -69,6 +69,8 @@ services:
       # points to the real keystore when the kafka server is started.
       - ./kafka/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks
       - ./kafka/kafka.properties:/bitnami/kafka/config/kafka.properties
+    networks:
+      - callisto
     environment:
       KAFKA_ENABLE_KRAFT: yes
       KAFKA_CFG_PROCESS_ROLES: broker,controller
@@ -126,6 +128,8 @@ services:
   kafka-tester:
     pull_policy: ${PULL_POLICY}
     image: bitnami/kafka:3.3
+    networks:
+      - callisto
     volumes:
       - keystore:/keystore
       - ./kafka/kafka-producer.properties:/bitnami/kafka/config/kafka-producer.properties
