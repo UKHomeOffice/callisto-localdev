@@ -112,7 +112,7 @@ done through Preferences > Core Shields > Web Shield > Add exceptions.
 ### MacOS + Chrome
 
 - Locate the certificate [nginx-selfsigned.crt](./ingress/nginx-selfsigned.crt) and open it
-- This will import the certificate into your Keychain.
+- This will allow you to import the certificate into your Keychain, it should be added to 'login' or errors will occur.
 - Open Keychain and locate the certificate.
 - Expand the trust section and change `When using this certificate` to `Always Trust`
 - Close the window to save the changes
