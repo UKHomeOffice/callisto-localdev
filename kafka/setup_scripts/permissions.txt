@@ -1,8 +1,4 @@
 # Timecard prefix permissions
---topic timecard --resource-pattern-type prefixed 
-User:kafka-producer     Write       Allow
-User:kafka-producer     Describe    Allow
-
-# Timecard timeentries permissions
---topic timecard-timeentries --resource-pattern-type literal 
-User:kafka-consumer     Read       Allow
+--topic callisto-timecard --resource-pattern-type literal 
+User:timecard-restapi    Write       Allow
+User:timecard-restapi    Describe    Allow
