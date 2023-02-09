@@ -95,6 +95,8 @@ services:
     healthcheck:
       <<: *healthcheck-settings
       test: kafka-topics.sh --bootstrap-server kafka:9093 --list --command-config /bitnami/kafka/config/kafka.properties || exit 1
+    networks:
+      - callisto
     depends_on:
       kafka-setup:
         condition: service_completed_successfully
@@ -114,6 +116,8 @@ services:
     depends_on:
       kafka:
         condition: service_healthy
+    networks:
+      - callisto
 
   kafka-producer-setup:
     <<: *certificate-creation
@@ -193,6 +197,11 @@ services:
       databaseSchemaName: timecard
       <<: *db-env
 
+  timecard-restapi-kafka-setup:
+    <<: *certificate-creation
+    command: ["timecard-restapi"]
+    
+    
   timecard-restapi:
     image: "quay.io/ukhomeofficedigital/callisto-timecard-restapi:$TIMECARD_RESTAPI_TAG"
     environment:
@@ -202,6 +211,10 @@ services:
     depends_on:
       timecard-database-migrations:
         condition: service_completed_successfully
+      timecard-restapi-kafka-setup:
+        condition: service_completed_successfully
+    volumes:
+      - keystore:/keystore
     healthcheck:
       <<: *healthcheck-settings
       test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui/index.html || exit 1
