@@ -1,1 +1,1 @@
-callisto-timecard
+callisto-timecard-timeentries

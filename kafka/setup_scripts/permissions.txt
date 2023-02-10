@@ -1,4 +1,5 @@
 # Timecard prefix permissions
---topic callisto-timecard --resource-pattern-type literal 
+--topic callisto-timecard-timeentries --resource-pattern-type literal 
 User:timecard-restapi    Write       Allow
 User:timecard-restapi    Describe    Allow
+User:kafka-consumer      Read        Allow 
