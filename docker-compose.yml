@@ -140,6 +140,9 @@ services:
         condition: service_completed_successfully
       kafka-topics-acls:
         condition: service_completed_successfully
+    networks:
+      - callisto
+
 
   ingress:
     image: nginx:1.19.2-alpine
