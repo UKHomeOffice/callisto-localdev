@@ -6,3 +6,8 @@ User:kafka-consumer      Read        Allow
 
 --group console-consumer --resource-pattern-type prefixed 
 User:kafka-consumer      All            Allow
+
+--topic callisto-timecard-timeentries --resource-pattern-type literal 
+User:timecard-restapi    Write       Allow
+User:timecard-restapi    Describe    Allow
+User:kafka-consumer      Read        Allow

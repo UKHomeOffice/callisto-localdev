@@ -124,7 +124,7 @@ services:
     command: ["kafka-consumer"]
 
   # Command to read topic
-  # kafka-console-consumer --bootstrap-server kafka:9093 --from-beginning --topic callisto-timecard --consumer.config /tmp/kafka-consumer.properties
+  # kafka-console-consumer --bootstrap-server kafka:9093 --from-beginning --topic callisto-timecard-timeentries --consumer.config /tmp/kafka-consumer.properties
   kafka-tester:
     image: confluentinc/cp-kafka:7.3.1
     volumes:
