@@ -123,15 +123,14 @@ services:
     <<: *certificate-creation
     command: ["kafka-consumer"]
 
+  # Command to read topic
+  # kafka-console-consumer --bootstrap-server kafka:9093 --from-beginning --topic callisto-timecard --consumer.config /tmp/kafka-consumer.properties
   kafka-tester:
-    pull_policy: ${PULL_POLICY}
-    image: bitnami/kafka:3.3
-    networks:
-      - callisto
+    image: confluentinc/cp-kafka:7.3.1
     volumes:
-      - keystore:/keystore
-      - ./kafka/kafka-producer.properties:/bitnami/kafka/config/kafka-producer.properties
-      - ./kafka/kafka-consumer.properties:/bitnami/kafka/config/kafka-consumer.properties
+      - keystore:/etc/kafka/secrets/keystore
+      - ./kafka/kafka-producer.properties:/tmp/kafka-producer.properties
+      - ./kafka/kafka-consumer.properties:/tmp/kafka-consumer.properties
     entrypoint: ["sleep", "1h"]
     depends_on:
       kafka:
@@ -144,7 +143,6 @@ services:
         condition: service_completed_successfully
     networks:
       - callisto
-
 
   ingress:
     image: nginx:1.19.2-alpine
