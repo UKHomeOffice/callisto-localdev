@@ -6,7 +6,7 @@ set -e
 function ensure_topic_exists() {
     local topic=$1
 
-    kafka-topics.sh --bootstrap-server $kafka_host --command-config $properties_file \
+    kafka-topics --bootstrap-server $kafka_host --command-config $properties_file \
         --create --topic $topic --if-not-exists \
         > /dev/null
 
@@ -26,7 +26,7 @@ function get_current_acl() {
     # form the output with the principals. Then use sed to strip out everything
     # but the required values leaving us with a space delimited list of existing
     # permissions   
-    IFS=$'\n' acls=( $(kafka-acls.sh --bootstrap-server $kafka_host --command-config $properties_file --list "${@}" | grep -o -e '(principal.*)' | sed -E 's/.*principal=(.*), host=\*, operation=(.*), permissionType=(.*)\)/\1 \2 \3/') )
+    IFS=$'\n' acls=( $(kafka-acls --bootstrap-server $kafka_host --command-config $properties_file --list "${@}" | grep -o -e '(principal.*)' | sed -E 's/.*principal=(.*), host=\*, operation=(.*), permissionType=(.*)\)/\1 \2 \3/') )
 
     echo "${acls[*]/%/$'\n'}"
 
@@ -59,7 +59,7 @@ set_permissions() {
         if [[ ! " ${desired_permissions[*],,} " =~ " ${principal,,} ${operation,,} ${permission,,} " ]]
         then
             echo Removing: ${principal} ${operation} ${permission}
-            kafka-acls.sh --bootstrap-server $kafka_host \
+            kafka-acls --bootstrap-server $kafka_host \
                 --command-config $properties_file \
                 "${parameters[@]}" \
                 --remove --force \
@@ -87,7 +87,7 @@ set_permissions() {
         if [[ ! " ${existing_permissions[*],,} " =~ " ${principal,,} ${operation,,} ${permission,,} " ]]
         then
             echo Adding: ${principal} ${operation} ${permission}
-            kafka-acls.sh --bootstrap-server $kafka_host \
+            kafka-acls --bootstrap-server $kafka_host \
                 --command-config $properties_file \
                 "${parameters[@]}" \
                 --add --force \

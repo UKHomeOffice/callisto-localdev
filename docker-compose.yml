@@ -58,60 +58,58 @@ services:
     command: ["kafka"]
 
   kafka:
-    image: bitnami/kafka:3.3
+    image: confluentinc/cp-kafka:7.3.1
     ports:
       - "9093"
     volumes:
-      - keystore:/keystore
-      # Required to trick the setup scripts to allow the configuration. The Keystore needs to be present
-      # during setup but the real keystore isn't created until kafka-setup. This places an empty file
-      # in the expected location and the environment variable KAFKA_CFG_SSL_KEYSTORE_LOCATION
-      # points to the real keystore when the kafka server is started.
-      - ./kafka/kafka.keystore.jks:/bitnami/kafka/config/certs/kafka.keystore.jks
-      - ./kafka/kafka.properties:/bitnami/kafka/config/kafka.properties
+      - keystore:/etc/kafka/secrets/keystore
+      - ./kafka/update_run.sh:/tmp/update_run.sh
+      - ./kafka/kafka.properties:/tmp/kafka.properties
     networks:
       - callisto
     environment:
-      KAFKA_ENABLE_KRAFT: yes
-      KAFKA_CFG_PROCESS_ROLES: broker,controller
-      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CFG_LISTENERS: CONTROLLER://kafka:9092,SSL://kafka:9093
-      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SSL,SSL:SSL
-      KAFKA_CFG_ADVERTISED_LISTENERS: SSL://kafka:9093
+      KAFKA_ADVERTISED_LISTENERS: SSL://kafka:9093
+      KAFKA_ALLOW_EVERYONE_IF_NO_ACL_FOUND: false
+      KAFKA_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: false
       KAFKA_BROKER_ID: 1
-      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9092
-
-      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: SSL
-      KAFKA_CFG_SSL_TRUSTSTORE_LOCATION: /keystore/kafka/kafka.truststore.jks
-      KAFKA_CFG_SSL_TRUSTSTORE_PASSWORD: changeit
-      KAFKA_TLS_TRUSTSTORE_FILE: /keystore/kafka/kafka.truststore.jks
-      KAFKA_CERTIFICATE_PASSWORD: changeit
-      KAFKA_CFG_SSL_KEYSTORE_LOCATION: /keystore/kafka/kafka.keystore.jks
-      KAFKA_CFG_SSL_KEYSTORE_PASSWORD: changeit
-
-      KAFKA_CFG_AUTHORIZER_CLASS_NAME: org.apache.kafka.metadata.authorizer.StandardAuthorizer
-      KAFKA_CFG_ALLOW_EVERYONE_IF_NO_ACL_FOUND: false
-      KAFKA_CFG_SSL_CLIENT_AUTH: required
-      KAFKA_CFG_SSL_PRINCIPAL_MAPPING_RULES: RULE:^C=GB,O=UK Home Office,CN=Callisto (.+)$$/$$1/,DEFAULT
-      KAFKA_CFG_SUPER_USERS: "User:kafka"
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: SSL
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:SSL,SSL:SSL
+      KAFKA_LISTENERS: CONTROLLER://kafka:9092,SSL://kafka:9093
+      KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_SSL_CLIENT_AUTH: required
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: " "
+      KAFKA_SSL_KEY_CREDENTIALS: keystore/kafka/kafka_creds
+      KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore/kafka/kafka_creds
+      KAFKA_SSL_KEYSTORE_FILENAME: keystore/kafka/kafka.keystore.jks
+      KAFKA_SSL_PRINCIPAL_MAPPING_RULES: RULE:^C=GB,O=UK Home Office,CN=Callisto (.+)$$/$$1/,DEFAULT
+      KAFKA_SSL_TRUSTSTORE_CREDENTIALS: keystore/kafka/kafka_creds
+      KAFKA_SSL_TRUSTSTORE_FILENAME: keystore/kafka/kafka.truststore.jks
+      KAFKA_SUPER_USERS: "User:kafka"
+    command: "bash -c '(/tmp/update_run.sh && /etc/confluent/docker/run) || sleep infinity'"
     healthcheck:
       <<: *healthcheck-settings
-      test: kafka-topics.sh --bootstrap-server kafka:9093 --list --command-config /bitnami/kafka/config/kafka.properties || exit 1
+      test: kafka-topics --bootstrap-server kafka:9093 --list --command-config /tmp/kafka.properties || exit 1
     depends_on:
       kafka-setup:
         condition: service_completed_successfully
 
   kafka-topics-acls:
-    pull_policy: ${PULL_POLICY}
-    image: bitnami/kafka:3.3
+    image: confluentinc/cp-kafka:7.3.1
+    networks:
+      - callisto
     volumes:
-      - keystore:/keystore
-      - ./kafka/kafka.properties:/bitnami/kafka/config/kafka.properties
+      - keystore:/etc/kafka/secrets/keystore
+      - ./kafka/kafka.properties:/tmp/kafka.properties
       - ./kafka/setup_scripts:/setup_scripts
     entrypoint:
       [
         "/setup_scripts/setup-topics-acls.sh",
-        "/bitnami/kafka/config/kafka.properties",
+        "/tmp/kafka.properties",
       ]
     depends_on:
       kafka:
