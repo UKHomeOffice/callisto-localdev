@@ -36,3 +36,11 @@ relevant container (i.e. broker or client).
 ## Acknowledgements
 
 [Securing Kafka with Mutual TLS and ACLs](https://medium.com/lydtech-consulting/securing-kafka-with-mutual-tls-and-acls-b235a077f3e3)
+
+## Useful commands
+
+**Command to read topic**
+
+```
+kafka-console-consumer --bootstrap-server kafka:9093 --from-beginning --topic callisto-timecard-timeentries --consumer.config /tmp/kafka-consumer.properties
+```
