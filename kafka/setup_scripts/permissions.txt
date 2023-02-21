@@ -1,5 +1,10 @@
-# Timecard prefix permissions
+# Timecard time entries permissions
 --topic callisto-timecard-timeentries --resource-pattern-type literal 
 User:timecard-restapi    Write       Allow
 User:timecard-restapi    Describe    Allow
-User:kafka-consumer      Read        Allow 
+User:kafka-consumer      Read        Allow
+
+# Example group permission to enable consumption in kafka tester service
+--group console-consumer --resource-pattern-type prefixed 
+User:kafka-consumer      All            Allow
+

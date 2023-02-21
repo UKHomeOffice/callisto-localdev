@@ -23,12 +23,9 @@ the line with a #. Comments can not be added to the end of lines.
 ### ACL Instruction
 
 The first eligble line (not empty or comments) of the file must be an
-instruction line. The ACL instruction uses the --topic and 
+instruction line. The ACL instruction uses the --group, --topic and 
 --resource-pattern-type parameters typically used in the kafka-acl tool.
-
 This instruction is used to target the ACL to be configured.
-**The order of the arguments is important.** It must be in the order
---topic [value] followed by --resource-pattern-type [value].
 
 Neither value provided can include whitespace.
 Valid arguments for --resource-pattern-type are prefixed and literal
@@ -69,8 +66,15 @@ timecard-entries topic.
 --topic timecard --resource-pattern-type prefixed 
 User:timecard-service   Write       Allow
 User:timecard-service   Describe    Allow
+User:kafka-consumer     Read        Allow
 
 # Accruals can only read fre
 --topic timecard-entries --resource-pattern-type literal 
 User:accrual-service    Read       Allow
+
+# An empty instruction will cause any existing permissions to be removed
+--group callisto-dodgy-consumer --resource-pattern-type prefixed 
+
+--group console-consumer --resource-pattern-type prefixed 
+User:kafka-consumer      All            Allow
 ```
