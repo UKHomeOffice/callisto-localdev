@@ -100,8 +100,6 @@ services:
 
   kafka-topics-acls:
     image: confluentinc/cp-kafka:7.3.1
-    networks:
-      - callisto
     volumes:
       - keystore:/etc/kafka/secrets/keystore
       - ./kafka/kafka.properties:/tmp/kafka.properties
@@ -199,8 +197,11 @@ services:
   timecard-restapi-kafka-setup:
     <<: *certificate-creation
     command: ["timecard-restapi"]
-    
-    
+
+  balance-calculator-kafka-setup:
+    <<: *certificate-creation
+    command: ["balance-calculator"]
+
   timecard-restapi:
     image: "quay.io/ukhomeofficedigital/callisto-timecard-restapi:$TIMECARD_RESTAPI_TAG"
     environment:
@@ -231,6 +232,20 @@ services:
     healthcheck:
       <<: *healthcheck-settings
       test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui/index.html || exit 1
+    networks:
+      - callisto
+
+  balance-calculator:
+    image: "quay.io/ukhomeofficedigital/callisto-balance-calculator:$BALANCE_CALCULATOR_TAG"
+    ports:
+      - "50500:9090"
+    depends_on:
+      balance-calculator-kafka-setup:
+        condition: service_completed_successfully
+    volumes:
+      - keystore:/keystore
+    healthcheck:
+      <<: *healthcheck-settings
     networks:
       - callisto
 
