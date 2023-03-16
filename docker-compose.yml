@@ -231,7 +231,7 @@ services:
       - "50200:9090"
     healthcheck:
       <<: *healthcheck-settings
-      test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui/index.html || exit 1
+      test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui || exit 1
     networks:
       - callisto
 
@@ -246,6 +246,7 @@ services:
       - keystore:/keystore
     healthcheck:
       <<: *healthcheck-settings
+      test: ["CMD", "curl", "-f", "localhost:50500/actuator/health"]
     networks:
       - callisto
 
