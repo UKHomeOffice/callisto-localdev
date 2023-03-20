@@ -194,9 +194,37 @@ services:
       databaseSchemaName: timecard
       <<: *db-env
 
+  person-schema-creation:
+    image: quay.io/ukhomeofficedigital/postgres:latest
+    environment:
+      <<: *db-env
+    command:
+      - "sh"
+      - "-c"
+      - "export PGPASSWORD=$DATABASE_PASSWORD; psql postgresql://postgres:5432/callisto -U postgres -c 'CREATE SCHEMA IF NOT EXISTS person;'"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - callisto
+
+  person-database-migrations:
+    <<: *liquibase-setting
+    image: "quay.io/ukhomeofficedigital/callisto-person-database:$PERSON_RESTAPI_TAG"
+    environment:
+      databaseSchemaName: person
+      <<: *db-env
+    depends_on:
+      person-schema-creation:
+        condition: service_completed_successfully
+
   timecard-restapi-kafka-setup:
     <<: *certificate-creation
     command: ["timecard-restapi"]
+
+  person-restapi-kafka-setup:
+    <<: *certificate-creation
+    command: ["person-restapi"]
 
   balance-calculator-kafka-setup:
     <<: *certificate-creation
@@ -206,6 +234,11 @@ services:
     image: "quay.io/ukhomeofficedigital/callisto-timecard-restapi:$TIMECARD_RESTAPI_TAG"
     environment:
       <<: *db-env
+      BOOTSTRAP_SERVER: kafka:9093
+      SPRING_PROFILES_ACTIVE: localdev
+      KEYSTORE_LOCATION: file://keystore/timecard-restapi/timecard-restapi.keystore.jks
+      TRUSTSTORE_LOCATION: file://keystore/timecard-restapi/timecard-restapi.truststore.jks
+      TIMECARD_KEYSTORE_PASSWORD: changeit
     ports:
       - "50100:9090"
     depends_on:
@@ -232,6 +265,30 @@ services:
     healthcheck:
       <<: *healthcheck-settings
       test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui || exit 1
+    networks:
+      - callisto
+
+  person-restapi:
+    image: "quay.io/ukhomeofficedigital/callisto-person-restapi:$PERSON_RESTAPI_TAG"
+    environment:
+      <<: *db-env
+      BOOTSTRAP_SERVER: kafka:9093
+      SPRING_PROFILES_ACTIVE: localdev
+      KEYSTORE_LOCATION: file://keystore/person-restapi/person-restapi.keystore.jks
+      TRUSTSTORE_LOCATION: file://keystore/person-restapi/person-restapi.truststore.jks
+      PERSON_KEYSTORE_PASSWORD: changeit
+    ports:
+      - "50300:9090"
+    depends_on:
+      person-database-migrations:
+        condition: service_completed_successfully
+      person-restapi-kafka-setup:
+        condition: service_completed_successfully
+    volumes:
+      - keystore:/keystore
+    healthcheck:
+      <<: *healthcheck-settings
+      test: wget --no-verbose --tries=1 --spider http://person-restapi:9090/swagger-ui/index.html || exit 1
     networks:
       - callisto
 
