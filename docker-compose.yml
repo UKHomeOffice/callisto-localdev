@@ -235,10 +235,10 @@ services:
     environment:
       <<: *db-env
       BOOTSTRAP_SERVER: kafka:9093
-      SPRING_PROFILES_ACTIVE: localdev
       KEYSTORE_LOCATION: file://keystore/timecard-restapi/timecard-restapi.keystore.jks
       TRUSTSTORE_LOCATION: file://keystore/timecard-restapi/timecard-restapi.truststore.jks
       TIMECARD_KEYSTORE_PASSWORD: changeit
+      TIMECARD_TRUSTSTORE_PASSWORD: changeit
     ports:
       - "50100:9090"
     depends_on:
@@ -273,10 +273,10 @@ services:
     environment:
       <<: *db-env
       BOOTSTRAP_SERVER: kafka:9093
-      SPRING_PROFILES_ACTIVE: localdev
       KEYSTORE_LOCATION: file://keystore/person-restapi/person-restapi.keystore.jks
       TRUSTSTORE_LOCATION: file://keystore/person-restapi/person-restapi.truststore.jks
       PERSON_KEYSTORE_PASSWORD: changeit
+      PERSON_TRUSTSTORE_PASSWORD: changeit
     ports:
       - "50300:9090"
     depends_on:
