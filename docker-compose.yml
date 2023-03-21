@@ -236,9 +236,11 @@ services:
       <<: *db-env
       BOOTSTRAP_SERVER: kafka:9093
       KEYSTORE_LOCATION: file://keystore/timecard-restapi/timecard-restapi.keystore.jks
-      TRUSTSTORE_LOCATION: file://keystore/timecard-restapi/timecard-restapi.truststore.jks
       TIMECARD_KEYSTORE_PASSWORD: changeit
-      TIMECARD_TRUSTSTORE_PASSWORD: changeit
+      SPRING_APPLICATION_JSON: '{
+        "spring.kafka.ssl.trust-store-location": "file://keystore/timecard-restapi/timecard-restapi.truststore.jks",
+        "spring.kafka.ssl.trust-store-password": "changeit"
+      }'
     ports:
       - "50100:9090"
     depends_on:
@@ -274,9 +276,11 @@ services:
       <<: *db-env
       BOOTSTRAP_SERVER: kafka:9093
       KEYSTORE_LOCATION: file://keystore/person-restapi/person-restapi.keystore.jks
-      TRUSTSTORE_LOCATION: file://keystore/person-restapi/person-restapi.truststore.jks
       PERSON_KEYSTORE_PASSWORD: changeit
-      PERSON_TRUSTSTORE_PASSWORD: changeit
+      SPRING_APPLICATION_JSON: '{
+        "spring.kafka.ssl.trust-store-location": "file://keystore/person-restapi/person-restapi.truststore.jks",
+        "spring.kafka.ssl.trust-store-password": "changeit"
+      }'
     ports:
       - "50300:9090"
     depends_on:
