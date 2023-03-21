@@ -13,6 +13,19 @@ x-db-env-conf: &db-env
   DATABASE_ENDPOINT: postgres
   DATABASE_PORT: 5432
 
+x-db-schema-creation: &db-schema-creation
+  image: quay.io/ukhomeofficedigital/postgres:latest
+  volumes:
+    - ./sql:/sql
+  environment:
+    <<: *db-env
+  entrypoint: ["/sql/create-db-schema.sh"]
+  depends_on:
+    postgres:
+      condition: service_healthy
+  networks:
+    - callisto
+
 x-liquibase-settings: &liquibase-setting
   pull_policy: ${PULL_POLICY}
   volumes:
@@ -43,8 +56,6 @@ services:
       - POSTGRES_PASSWORD=${PSQL_PASSWORD}
       - POSTGRES_USER=${PSQL_USER}
       - POSTGRES_DB=${DATABASE_NAME}
-    volumes:
-      - ./sql:/docker-entrypoint-initdb.d # This volume store sql files that are executed automaticallyby Postgres.
     networks:
       - callisto
     healthcheck:
@@ -187,26 +198,23 @@ services:
       <<: *healthcheck-settings
       test: ["CMD", "curl", "-f", "http://web:9090/index.html"]
 
+  timecard-schema-creation:
+    <<: *db-schema-creation
+    command: ["timecard"]
+
   timecard-database-migrations:
     <<: *liquibase-setting
     image: "quay.io/ukhomeofficedigital/callisto-timecard-database:$TIMECARD_RESTAPI_TAG"
     environment:
       databaseSchemaName: timecard
       <<: *db-env
+    depends_on:
+      timecard-schema-creation:
+        condition: service_completed_successfully
 
   person-schema-creation:
-    image: quay.io/ukhomeofficedigital/postgres:latest
-    environment:
-      <<: *db-env
-    command:
-      - "sh"
-      - "-c"
-      - "export PGPASSWORD=$DATABASE_PASSWORD; psql postgresql://postgres:5432/callisto -U postgres -c 'CREATE SCHEMA IF NOT EXISTS person;'"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - callisto
+    <<: *db-schema-creation
+    command: ["person"]
 
   person-database-migrations:
     <<: *liquibase-setting
