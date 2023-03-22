@@ -206,7 +206,6 @@ services:
     <<: *liquibase-setting
     image: "quay.io/ukhomeofficedigital/callisto-timecard-database:$TIMECARD_RESTAPI_TAG"
     environment:
-      databaseSchemaName: timecard
       <<: *db-env
     depends_on:
       timecard-schema-creation:
@@ -220,7 +219,6 @@ services:
     <<: *liquibase-setting
     image: "quay.io/ukhomeofficedigital/callisto-person-database:$PERSON_RESTAPI_TAG"
     environment:
-      databaseSchemaName: person
       <<: *db-env
     depends_on:
       person-schema-creation:
