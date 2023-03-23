@@ -39,7 +39,7 @@ relevant container (i.e. broker or client).
 
 ## Useful commands
 
-**Command to read topic**
+**Command to read topic (to be run from a Kafka container, e.g. kafka-tester)**
 
 ```
 kafka-console-consumer --bootstrap-server kafka:9093 --from-beginning --topic callisto-timecard-timeentries --consumer.config /tmp/kafka-consumer.properties

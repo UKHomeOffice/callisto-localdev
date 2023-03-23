@@ -13,11 +13,23 @@ x-db-env-conf: &db-env
   DATABASE_ENDPOINT: postgres
   DATABASE_PORT: 5432
 
+x-db-schema-creation: &db-schema-creation
+  image: quay.io/ukhomeofficedigital/postgres:latest
+  volumes:
+    - ./sql:/sql
+  environment:
+    <<: *db-env
+  entrypoint: ["/sql/create-db-schema.sh"]
+  depends_on:
+    postgres:
+      condition: service_healthy
+  networks:
+    - callisto
+
 x-liquibase-settings: &liquibase-setting
   pull_policy: ${PULL_POLICY}
   volumes:
     - ./liquibase/liquibase-setup.sh:/liquibase-setup.sh
-  command: chmod +x /liquibase-setup.sh
   entrypoint: /liquibase-setup.sh
   networks:
     - callisto
@@ -43,8 +55,6 @@ services:
       - POSTGRES_PASSWORD=${PSQL_PASSWORD}
       - POSTGRES_USER=${PSQL_USER}
       - POSTGRES_DB=${DATABASE_NAME}
-    volumes:
-      - ./sql:/docker-entrypoint-initdb.d # This volume store sql files that are executed automaticallyby Postgres.
     networks:
       - callisto
     healthcheck:
@@ -187,16 +197,41 @@ services:
       <<: *healthcheck-settings
       test: ["CMD", "curl", "-f", "http://web:9090/index.html"]
 
+  timecard-schema-creation:
+    <<: *db-schema-creation
+    command: ["timecard"]
+
   timecard-database-migrations:
     <<: *liquibase-setting
     image: "quay.io/ukhomeofficedigital/callisto-timecard-database:$TIMECARD_RESTAPI_TAG"
     environment:
-      databaseSchemaName: timecard
       <<: *db-env
+    command: ["timecard"]
+    depends_on:
+      timecard-schema-creation:
+        condition: service_completed_successfully
+
+  person-schema-creation:
+    <<: *db-schema-creation
+    command: ["person"]
+
+  person-database-migrations:
+    <<: *liquibase-setting
+    image: "quay.io/ukhomeofficedigital/callisto-person-database:$PERSON_RESTAPI_TAG"
+    environment:
+      <<: *db-env
+    command: ["person"]
+    depends_on:
+      person-schema-creation:
+        condition: service_completed_successfully
 
   timecard-restapi-kafka-setup:
     <<: *certificate-creation
     command: ["timecard-restapi"]
+
+  person-restapi-kafka-setup:
+    <<: *certificate-creation
+    command: ["person-restapi"]
 
   balance-calculator-kafka-setup:
     <<: *certificate-creation
@@ -206,6 +241,13 @@ services:
     image: "quay.io/ukhomeofficedigital/callisto-timecard-restapi:$TIMECARD_RESTAPI_TAG"
     environment:
       <<: *db-env
+      BOOTSTRAP_SERVER: kafka:9093
+      KEYSTORE_LOCATION: file://keystore/timecard-restapi/timecard-restapi.keystore.jks
+      TIMECARD_KEYSTORE_PASSWORD: changeit
+      SPRING_APPLICATION_JSON: '{
+        "spring.kafka.ssl.trust-store-location": "file://keystore/timecard-restapi/timecard-restapi.truststore.jks",
+        "spring.kafka.ssl.trust-store-password": "changeit"
+      }'
     ports:
       - "50100:9090"
     depends_on:
@@ -232,6 +274,32 @@ services:
     healthcheck:
       <<: *healthcheck-settings
       test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui || exit 1
+    networks:
+      - callisto
+
+  person-restapi:
+    image: "quay.io/ukhomeofficedigital/callisto-person-restapi:$PERSON_RESTAPI_TAG"
+    environment:
+      <<: *db-env
+      BOOTSTRAP_SERVER: kafka:9093
+      KEYSTORE_LOCATION: file://keystore/person-restapi/person-restapi.keystore.jks
+      PERSON_KEYSTORE_PASSWORD: changeit
+      SPRING_APPLICATION_JSON: '{
+        "spring.kafka.ssl.trust-store-location": "file://keystore/person-restapi/person-restapi.truststore.jks",
+        "spring.kafka.ssl.trust-store-password": "changeit"
+      }'
+    ports:
+      - "50300:9090"
+    depends_on:
+      person-database-migrations:
+        condition: service_completed_successfully
+      person-restapi-kafka-setup:
+        condition: service_completed_successfully
+    volumes:
+      - keystore:/keystore
+    healthcheck:
+      <<: *healthcheck-settings
+      test: wget --no-verbose --tries=1 --spider http://person-restapi:9090/swagger-ui/index.html || exit 1
     networks:
       - callisto
 

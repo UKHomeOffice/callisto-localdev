@@ -5,9 +5,16 @@ User:timecard-restapi    Describe    Allow
 User:balance-calculator  Read        Allow
 User:kafka-consumer      Read        Allow
 
+# Person people permissions
+--topic callisto-person-people --resource-pattern-type literal
+User:person-restapi            Write       Allow
+User:person-restapi            Describe    Allow
+User:accruals-person-consumer  Read        Allow
+User:kafka-consumer            Read        Allow
 
 # Example group permission to enable consumption in kafka tester service
 --group console-consumer --resource-pattern-type prefixed
-User:balance-calculator  All        Allow
-User:kafka-consumer      All            Allow
+User:balance-calculator        All         Allow
+User:accruals-person-consumer  All         Allow
+User:kafka-consumer            All         Allow
 
