@@ -46,9 +46,9 @@ These steps apply to all services including Callisto UI:
 - Checkout code repository for the service you'd like to develop/debug
 - From its root directory, run `docker compose up -d` command
 
-After a successful start, check if you have access to the service (e.g access the UI in your browser or hit the Open API doc if it's a REST API service). If everything went well, you can edit the code and preview the changes live in the browser.
+After a successful start, check if you have access to the service (e.g access the UI via your browser or hit the Open API doc URL, if it's a REST API service). If everything went well, you can edit the code and preview the changes reflected in your localdev context.
 
-The service can also be debugged. To do so in a JetBrains IDE, a debugger has to be added (Run -> Edit Configurations.. -> Add Remote JVM Debug), with the port matching the external port mapped in the docker compose file of the the service to debug. For example that would be 50211 for callisto-balance-calculator 
+The service can also be debugged. To do so in a JetBrains IDE, a debugger has to be added (Run -> Edit Configurations.. -> Add Remote JVM Debug), with the port matching the external port mapped in the docker compose file of the service to debug. For example, that would be 50211 for callisto-balance-calculator service
 
 ### Debugging code while running service on Docker
 
