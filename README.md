@@ -38,16 +38,19 @@ Now access Callisto UI here: https://web.callisto.localhost
 
 **_If any issues or certificate problems, check Help section._**
 
-### Scenario 2: I want to develop code for UI only
+### Scenario 2: I want to develop code for an individual service only
 
-- perform all steps from Scenario 1
-- stop the Docker UI service that was started by following the steps from Scenario 1
-- download repository with Callisto UI
-- from its root directory run `docker compose up -d` command
+These steps apply to all services including Callisto UI:
+- Perform all steps from Scenario 1
+- Stop the Docker service you'd like to develop/debug (this would have been started by following the steps from Scenario 1)
+- Checkout code repository for the service you'd like to develop/debug
+- From its root directory, run `docker compose up -d` command
 
-After a successful start, check if you have access to the UI in your browser. If everything went well, you can edit the UI code and preview the changes live in the browser.
+After a successful start, check if you have access to the service (e.g access the UI via your browser or hit the Open API doc URL, if it's a REST API service). If everything went well, you can edit the code and preview the changes reflected in your localdev context.
 
-The same procedure should be followed if you want to work on the code of another service.
+The service can also be debugged. To do so in a JetBrains IDE, a debugger has to be added (Run -> Edit Configurations.. -> Add Remote JVM Debug), with the port matching the external port mapped in the docker compose file of the service to debug. For example, that would be 50211 for callisto-balance-calculator service
+
+### Debugging code while running service on Docker
 
 **_If any issues or certificate problems, check Help section._**
 
