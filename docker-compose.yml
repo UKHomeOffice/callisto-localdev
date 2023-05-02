@@ -211,6 +211,20 @@ services:
       timecard-schema-creation:
         condition: service_completed_successfully
 
+  accruals-schema-creation:
+    <<: *db-schema-creation
+    command: ["accruals"]
+
+  accruals-database-migrations:
+    <<: *liquibase-setting
+    image: "quay.io/ukhomeofficedigital/callisto-accruals-database:$ACCRUALS_RESTAPI_TAG"
+    environment:
+      <<: *db-env
+    command: ["accruals"]
+    depends_on:
+      accruals-schema-creation:
+        condition: service_completed_successfully
+
   person-schema-creation:
     <<: *db-schema-creation
     command: ["person"]
@@ -271,9 +285,12 @@ services:
       - "--server.port=9090" # Having to override server port as application.properties is setting it to a different port
     ports:
       - "50200:9090"
+    depends_on:
+      accruals-database-migrations:
+        condition: service_completed_successfully
     healthcheck:
       <<: *healthcheck-settings
-      test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui || exit 1
+      test: wget --no-verbose --tries=1 --spider http://accruals-restapi:9090/swagger-ui/index.html || exit 1
     networks:
       - callisto
 
