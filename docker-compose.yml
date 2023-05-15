@@ -185,6 +185,9 @@ services:
 
   web:
     image: "quay.io/ukhomeofficedigital/callisto-ui:$WEB_TAG"
+    environment:
+      VITE_TIMECARD_API_URL: "https://callisto-timecard-restapi.callisto.localhost/"
+      VITE_ACCRUALS_API_URL: "https://callisto-accruals-restapi.callisto.localhost/"
     pull_policy: ${PULL_POLICY}
     ports:
       - "50001:9090"
@@ -251,7 +254,7 @@ services:
     <<: *certificate-creation
     command: ["balance-calculator"]
 
-  timecard-restapi:
+  callisto-timecard-restapi:
     image: "quay.io/ukhomeofficedigital/callisto-timecard-restapi:$TIMECARD_RESTAPI_TAG"
     environment:
       <<: *db-env
@@ -273,11 +276,11 @@ services:
       - keystore:/keystore
     healthcheck:
       <<: *healthcheck-settings
-      test: wget --no-verbose --tries=1 --spider http://timecard-restapi:9090/swagger-ui/index.html || exit 1
+      test: wget --no-verbose --tries=1 --spider http://callisto-timecard-restapi:9090/swagger-ui/index.html || exit 1
     networks:
       - callisto
 
-  accruals-restapi:
+  callisto-accruals-restapi:
     image: "quay.io/ukhomeofficedigital/callisto-accruals-restapi:$ACCRUALS_RESTAPI_TAG"
     environment:
       <<: *db-env
@@ -290,11 +293,11 @@ services:
         condition: service_completed_successfully
     healthcheck:
       <<: *healthcheck-settings
-      test: wget --no-verbose --tries=1 --spider http://accruals-restapi:9090/swagger-ui/index.html || exit 1
+      test: wget --no-verbose --tries=1 --spider http://callisto-accruals-restapi:9090/swagger-ui/index.html || exit 1
     networks:
       - callisto
 
-  person-restapi:
+  callisto-person-restapi:
     image: "quay.io/ukhomeofficedigital/callisto-person-restapi:$PERSON_RESTAPI_TAG"
     environment:
       <<: *db-env
@@ -316,12 +319,20 @@ services:
       - keystore:/keystore
     healthcheck:
       <<: *healthcheck-settings
-      test: wget --no-verbose --tries=1 --spider http://person-restapi:9090/swagger-ui/index.html || exit 1
+      test: wget --no-verbose --tries=1 --spider http://callisto-person-restapi:9090/swagger-ui/index.html || exit 1
     networks:
       - callisto
 
   balance-calculator:
     image: "quay.io/ukhomeofficedigital/callisto-balance-calculator:$BALANCE_CALCULATOR_TAG"
+    environment:
+      BOOTSTRAP_SERVER: kafka:9093
+      KEYSTORE_LOCATION: file://keystore/balance-calculator/balance-calculator.keystore.jks
+      KEYSTORE_PASSWORD: changeit
+      SPRING_APPLICATION_JSON: '{
+        "spring.kafka.ssl.trust-store-location": "file://keystore/balance-calculator/balance-calculator.truststore.jks",
+        "spring.kafka.ssl.trust-store-password": "changeit"
+      }'
     ports:
       - "50500:9090"
     depends_on:
