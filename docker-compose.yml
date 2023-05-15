@@ -185,9 +185,6 @@ services:
 
   web:
     image: "quay.io/ukhomeofficedigital/callisto-ui:$WEB_TAG"
-    environment:
-      VITE_TIMECARD_API_URL: "https://callisto-timecard-restapi.callisto.localhost/"
-      VITE_ACCRUALS_API_URL: "https://callisto-accruals-restapi.callisto.localhost/"
     pull_policy: ${PULL_POLICY}
     ports:
       - "50001:9090"
