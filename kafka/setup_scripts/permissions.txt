@@ -18,3 +18,6 @@ User:balance-calculator        All         Allow
 User:accruals-person-consumer  All         Allow
 User:kafka-consumer            All         Allow
 
+--group balance-calculator --resource-pattern-type prefixed
+User:balance-calculator        Read         Allow
+

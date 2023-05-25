@@ -324,6 +324,7 @@ services:
     image: "quay.io/ukhomeofficedigital/callisto-balance-calculator:$BALANCE_CALCULATOR_TAG"
     environment:
       BOOTSTRAP_SERVER: kafka:9093
+      ACCRUALS_URL: http://callisto-accruals-restapi:9090
       KEYSTORE_LOCATION: file://keystore/balance-calculator/balance-calculator.keystore.jks
       KEYSTORE_PASSWORD: changeit
       SPRING_APPLICATION_JSON: '{
