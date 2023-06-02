@@ -300,7 +300,7 @@ services:
       <<: *db-env
       BOOTSTRAP_SERVER: kafka:9093
       KEYSTORE_LOCATION: file://keystore/person-restapi/person-restapi.keystore.jks
-      PERSON_KEYSTORE_PASSWORD: changeit
+      KEYSTORE_PASSWORD: changeit
       SPRING_APPLICATION_JSON: '{
         "spring.kafka.ssl.trust-store-location": "file://keystore/person-restapi/person-restapi.truststore.jks",
         "spring.kafka.ssl.trust-store-password": "changeit"
